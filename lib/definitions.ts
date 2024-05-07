@@ -5,6 +5,7 @@ export type ProductType = {
   name: string;
   price: number;
   desc: string;
+  category: string;
   image: string;
 };
 
@@ -32,4 +33,11 @@ export type ProductDetailType = {
 export type LoginRequest = {
 	email: string;
 	password: string;
+};
+
+export type UserProfile = {
+	userAvatar: string;
+	userBio: string;
+	userEmail: string;
+	userUsername: string;
 };

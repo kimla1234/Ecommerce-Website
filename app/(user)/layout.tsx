@@ -2,14 +2,13 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
 
-
 import NavbarComponent from "@/component/navbar/NavbarComponent";
 import FooterComponent from "@/component/footer/FooterComponent";
 import { roboto, suwannaphum } from "./fonts";
 import StoreProvider from "../StoreProvider";
 import { Providers } from "../providers";
 import SessionWrapper from "../SessionWrapper";
-
+import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +34,7 @@ export default function RootLayout({
             </Providers>
           </StoreProvider>
         </body>
+
       </SessionWrapper>
     </html>
   );

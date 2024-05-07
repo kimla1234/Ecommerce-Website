@@ -1,10 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { CartProductType } from "@/lib/definitions";
+
 import type { RootState } from "@/redux/store";
+import { CartProductType } from "@/lib/definitions";
 
 const initialState = {
 	products: [] as CartProductType[],
-	totalPrice:0,
+	totalPrice: 0,
 };
 
 const cartSlice = createSlice({
@@ -12,20 +13,29 @@ const cartSlice = createSlice({
 	initialState,
 	reducers: {
 		addToCart: (state, action: PayloadAction<CartProductType>) => {
-			state.products.push(action.payload);
-			state.totalPrice += action.payload.price;
+			const productExists = state.products.some(
+				(product) => product.id === action.payload.id
+			);
+
+			if (!productExists) {
+				state.products.push(action.payload);
+				const price = parseFloat(action.payload.price.toString());
+				state.totalPrice += price;
+			}
 		},
 		removeFromCart: (state, action: PayloadAction<number>) => {
-            // find product by id
-            const product = state.products.find((product) => product.id === action.payload);
+			// find product by id
+			const product = state.products.find(
+				(product) => product.id === action.payload
+			);
 
-            state.totalPrice -= product?.price || 0;
+			state.totalPrice -= product?.price || 0;
 
 			state.products = state.products.filter(
 				(product) => product.id !== action.payload
 			);
 		},
-        increment: (state, action: PayloadAction<number>) => {
+		increment: (state, action: PayloadAction<number>) => {
 			const product = state.products.find(
 				(product) => product.id === action.payload
 			);

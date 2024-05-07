@@ -101,7 +101,7 @@ export default function Page() {
               enjoyable experience right from the comfort of your own home.
             </p>
             <div className="p-4">
-              <Image src="/logo.jpg" alt="logo" width={1000} height={100} />
+              <img src="./icons/logo.jpg" alt="" />
             </div>
           </div>
         </div>

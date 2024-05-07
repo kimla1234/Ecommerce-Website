@@ -20,8 +20,8 @@ export default function Home() {
   const onPageChange = (page: number) => setCurrentPage(page);
   const router = useRouter();
 
-  const states = useAppSelector(states => states)
-  console.log("This globle state ",states)
+  const states = useAppSelector((states) => states);
+  console.log("This globle state ", states);
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/products/?page=${currentPage}&page_size=12`)
@@ -132,21 +132,20 @@ export default function Home() {
         </h1>
         <h1 className="text-3xl">Tailwind CSS</h1>
       </div>
-      
+
       <div className="flex justify-center p-2">
         <div className="mt-10 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 w-screen px-[30px] md:[50px] lg:px-[30px] xl:px-[100px] gap-5 xl:gap-8">
           <Suspense fallback={<Loading />}>
             {products.map((product: ProductType, index) => (
-
+              <Link href={`/detail/${product.id}`} key={product.id}>
               <CardComponent
-                onClick={() => router.push(`/service/${product.id}`)}
                 key={index}
                 id={product.id}
                 name={product.name}
                 image={product.image}
                 price={product.price}
               />
-
+              </Link>
             ))}
           </Suspense>
         </div>

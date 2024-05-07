@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Navbar,
   Image,
@@ -19,7 +19,6 @@ import {
 import { IoCartOutline } from "react-icons/io5";
 
 import { useState } from "react";
-import { MenuList } from "./Menu";
 import { AiOutlineLogin } from "react-icons/ai";
 import { TiShoppingCart } from "react-icons/ti";
 
@@ -27,27 +26,50 @@ import { redirect, useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { signOut, useSession } from "next-auth/react";
+import { clearAccessToken } from "@/redux/features/token/tokenSlice";
 
-import { cookies } from "next/headers";
-
-type MenuItem = {
-  name: string;
-  path: string;
-  active: boolean;
-};
 import {
-	selectAvatar,
-	selectBio,
-} from "@/redux/features/userProfile/userProfileSlice";
+  useGetMyProductsQuery,
+  useGetProductsQuery,
+  useGetUserProfileQuery,
+} from "@/redux/service/products";
+import { UserProfile } from "@/lib/definitions";
 
 export default function NavbarComponent() {
-
+  const dispatch = useAppDispatch();
   const session = useSession();
   const pathName = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
-  const userAvatar = useAppSelector(selectAvatar);
-  const userBio = useAppSelector(selectBio);
+  const accessToken = useAppSelector((state) => state.accessToken.token);
+  const { data, isSuccess } = useGetUserProfileQuery({});
+  console.log("user Profile : ", data);
+
+  let userProfile: UserProfile;
+  if (session.data != null) {
+    userProfile = {
+      userAvatar: session.data?.user?.image || "",
+      userBio: session.data?.user?.name || "",
+      userEmail: session.data?.user?.email || "",
+      userUsername: session.data?.user?.name || "",
+    };
+  } else if (isSuccess) {
+    userProfile = {
+      userAvatar: data.profile.avatar || "",
+      userBio: data.profile.bio || "",
+      userEmail: data.email || "",
+      userUsername: data.last_name || "",
+    };
+  } else {
+    userProfile = {
+      userAvatar: "",
+      userBio: "",
+      userEmail: "",
+      userUsername: "",
+    };
+  }
+
+  console.log(userProfile);
 
   const menuItems = [
     {
@@ -71,14 +93,6 @@ export default function NavbarComponent() {
   const cart = useAppSelector((state) => state.cart.products);
   let cartLength = cart.length;
 
-  const handleSignout = async () => {
-    const isSignout = await signOut();
-    if (isSignout) {
-      signOut();
-      router.push("/login");
-    }
-  };
-
   const handleLogout = async () => {
     fetch(process.env.NEXT_PUBLIC_BASE_URL_LOCALHOST + "/logout", {
       method: "POST",
@@ -92,15 +106,32 @@ export default function NavbarComponent() {
       .catch((error) => {
         console.error("Refresh Token error:", error);
       });
-
+    dispatch(clearAccessToken());
+    signOut();
     router.push("/login");
   };
 
+  useEffect(() => {}, [userProfile]);
+
+  const pathname = usePathname();
+  if (
+    pathname === "/cart" ||
+    pathname === "/dashboard" ||
+    pathname === "/register"
+  ) {
+    return null;
+  }
+
   return (
-    <Navbar shouldHideOnScroll  className="h-[50px] w-full">
+    <Navbar shouldHideOnScroll className="h-[50px] w-full">
       <NavbarBrand>
-        <img src="./icons/" alt="" />
-        <p className="font-bold text-inherit">CAMSTORE</p>
+        <div className="p-2 h-fll w-full">
+          <img
+            src="./icons/logo.jpg"
+            alt="K-STORE"
+            className="h-10  object-cover"
+          />
+        </div>
       </NavbarBrand>
 
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
@@ -129,154 +160,80 @@ export default function NavbarComponent() {
       <NavbarContent justify="end">
         <NavbarItem className="flex items-center gap-5">
           <button onClick={() => router.push("/cart")}>
-          <IoCartOutline className="h-5 w-5" />
+            <IoCartOutline className="h-5 w-5" />
             <span className="self-center grid place-content-center whitespace-nowrap text-medium font-medium  text-red-800 bg-black w-[25px] h-[25px] rounded-full absolute top-2 ml-10">
               {cartLength}
             </span>
           </button>
           {true ? (
-						<div className="flex items-center gap-4">
-							<Dropdown placement="bottom-start">
-								<DropdownTrigger>
-									<User
-										as="button"
-										avatarProps={{
-											isBordered: true,
-											src: `${
-												session.data === null
-													? userAvatar
-													: session.data?.user?.image
-											}`,
-										}}
-										className="flex flex-col transition-transform md:flex-row"
-										description={
-											session.data === null
-												? userBio
-												: session.data?.user?.name
-										}
-										name={
-											session.data === null
-												? ""
-												: session.data?.user?.name
-										}
-									/>
-								</DropdownTrigger>
-								<DropdownMenu
-									aria-label="User Actions"
-									variant="flat">
-									<DropdownItem
-										key="profile"
-										className="h-14 gap-2">
-										<p className="font-bold">
-											Signed in as
-										</p>
-										<p className="font-bold">
-											{session.data === null
-												? "User"
-												: session.data?.user?.email}
-										</p>
-									</DropdownItem>
-									<DropdownItem
-										key="login"
-										onClick={() => {
-											router.push("/login");
-										}}>
-										Login
-									</DropdownItem>
-									<DropdownItem
-										key="logout"
-										color="danger"
-										onClick={() => {
-											session.data === null
-												? handleLogout()
-												: handleSignout();
-										}}>
-										Log Out
-									</DropdownItem>
-								</DropdownMenu>
-							</Dropdown>
-						</div>
-					) : (
-						<Button
-							href="/login"
-							as={Link}
-							color="primary"
-							variant="flat">
-							Login
-						</Button>
-					)}
-
+            <div className="flex items-center gap-4">
+              <Dropdown placement="bottom-start">
+                <DropdownTrigger>
+                  <User
+                    as="button"
+                    avatarProps={{
+                      isBordered: true,
+                      src: userProfile.userAvatar,
+                    }}
+                    className="flex flex-col transition-transform md:flex-row"
+                    description={userProfile.userBio}
+                    name={userProfile.userUsername}
+                  />
+                </DropdownTrigger>
+                <DropdownMenu aria-label="User Actions" variant="flat">
+                  <DropdownItem key="profile" className="h-14 gap-2">
+                    <p className="font-bold">Signed in as</p>
+                    <p className="font-bold">{userProfile.userUsername}</p>
+                  </DropdownItem>
+                  {userProfile.userEmail == "" ? (
+                    <DropdownItem
+                      key="login"
+                      onClick={() => router.push("/login")}
+                    >
+                      <Link href="/login" color="primary">
+                        Login
+                      </Link>
+                    </DropdownItem>
+                  ) : (
+                    <DropdownItem
+                      key="logout"
+                      color="danger"
+                      onClick={() => handleLogout()}
+                    >
+                      Log Out
+                    </DropdownItem>
+                  )}
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+          ) : (
+            <Button href="/login" as={Link} color="primary" variant="flat">
+              Login
+            </Button>
+          )}
         </NavbarItem>
       </NavbarContent>
 
       <NavbarMenu>
-				{menuItems.map((item, index) => (
-					<NavbarMenuItem key={`${item}-${index}`}>
-						<Link
-							color={
-								index === 2
-									? "primary"
-									: index === menuItems.length - 1
-									? "danger"
-									: "foreground"
-							}
-							className="w-full"
-							href={item.path}
-							size="lg">
-							{item.name}
-						</Link>
-					</NavbarMenuItem>
-				))}
-			</NavbarMenu>
+        {menuItems.map((item, index) => (
+          <NavbarMenuItem key={`${item}-${index}`}>
+            <Link
+              color={
+                index === 2
+                  ? "primary"
+                  : index === menuItems.length - 1
+                  ? "danger"
+                  : "foreground"
+              }
+              className="w-full"
+              href={item.path}
+              size="lg"
+            >
+              {item.name}
+            </Link>
+          </NavbarMenuItem>
+        ))}
+      </NavbarMenu>
     </Navbar>
   );
-}
-
-{
-  /*<Navbar fluid rounded>
-      <Navbar.Brand href="">
-        <img
-          src="https://kaufland-ecommerce.com/wp-content/uploads/KL_Ecommerce_Logo_RGB1.png"
-          className="mr-4 h-10 sm:h-9"
-          alt="Ecommerce"
-        />
-      </Navbar.Brand>
-      <Navbar.Collapse>
-        {menu.map((item, index) => (
-          <NavbarLink
-            key={index}
-            as={Link}
-            href={item.path}
-            active={item.path === pathname}
-          >
-            {item.name}
-          </NavbarLink>
-        ))}
-      </Navbar.Collapse>
-
-      <Navbar.Collapse>
-        <NavbarLink
-          as={Link}
-          href="/cart"
-          active={cartLength > 0}
-          className="flex items-center justify-center"
-        >
-          <Image src="/icons/cart.png" alt="backgroud" width={30} height={30} />
-          <span className="self-center grid place-content-center whitespace-nowrap text-medium font-medium text-white bg-black w-[25px] h-[25px] rounded-full absolute top-1 ml-5">
-            {cartLength}
-          </span>
-        </NavbarLink>
-      </Navbar.Collapse>
-
-      <div className="flex md:order-2  ">
-        <button className=" bg-slate-50 hove:bg-slate-50">
-          <img src="/icons/cart.png" alt="cart" className="h-5 w-5" />
-        </button>
-        <Button>
-          Login <AiOutlineLogin className=" h-5 w-5" />
-        </Button>
-        <Navbar.Toggle />
-      </div>
-      
-        </Navbar>*/
 }

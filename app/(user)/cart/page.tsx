@@ -72,6 +72,7 @@ export default function Cart({ image, name, price, id, desc }: ProductType) {
                   products.map((product) => (
                     <ProductCart
                       key={product.id}
+                      category="product.category"
                       id={product.id}
                       name={product.name}
                       image={product.image}

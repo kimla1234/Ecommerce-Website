@@ -43,7 +43,12 @@ const baseQueryWithReAuth = async (args: any, api: any, extraOptions: any) => {
 
 // initialize an empty api service that we'll inject endpoints into later as needed
 export const ecommerceApi = createApi({
+	refetchOnReconnect: true,
+	keepUnusedDataFor: 60,
+	refetchOnMountOrArgChange: 60,
+	tagTypes : ["Product", "ProductImage", "UserProfile"],
 	reducerPath: "ecommerceApi",
 	baseQuery: baseQueryWithReAuth,
 	endpoints: () => ({}),
 });
+

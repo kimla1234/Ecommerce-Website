@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "@/redux/store";
-import { useAppSelector } from "@/redux/hooks";
-
+import { BASE_URL, ACCESS_TOKEN } from "@/lib/constants";
 
 // Define a type for the user profile
 
@@ -15,62 +14,52 @@ type UserProfile = {
 // Define the initial state using that type
 
 type initialStateType = {
-	status: "idle" | "loading" | "success" | "failed";
-	userProfile: UserProfile | null;
-	error: string | undefined;
-};
+    status: 'idle' | 'loading' | 'success' | 'failed',
+    userProfile: UserProfile | null,
+    error: string | undefined
+}
 
 const initialState: initialStateType = {
-	status: "idle",
-	userProfile: null,
-	error: undefined,
+    status: 'idle',
+    userProfile: null,
+    error: undefined
 };
 
 // create asyn thunk
-export const fetchUserProfile = createAsyncThunk(
-	"userProfile/fetchUserProfile",
-	async () => {
-        const ACCESS_TOKEN = useAppSelector((state) => state.accessToken.token);
-        console.log("ACCESS_TOKEN from fetchUserProfile: ", ACCESS_TOKEN)
-		const response = await fetch("https://store.istad.co/api/user/profile/", {
-			headers: {
-				Authorization: `Bearer ${ACCESS_TOKEN}`,
-			},
-		});
-		const data = await response.json();
-		return data;
-	}
-);
-
-const userProfileSlice = createSlice({
-	name: "userProfile",
-	initialState,
-	reducers: {
-		// standard reducer logic, with auto-generated action types per reducer
-        addUser: (state, action: PayloadAction<UserProfile>) => {
-            state.userProfile = action.payload;
+export const fetchUserProfile = createAsyncThunk("userProfile/fetchUserProfile", async () => {
+    const response = await fetch(`${BASE_URL}/api/user/profile/`,{
+        headers: {
+            Authorization: `Bearer ${ACCESS_TOKEN}`
         }
-	},
-	extraReducers: (builder) => {
-		builder.addCase(fetchUserProfile.pending, (state) => {
-			state.status = "loading";
-		});
-		builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
-			state.status = "success";
-			state.userProfile = action.payload;
-		});
-		builder.addCase(fetchUserProfile.rejected, (state, action) => {
-			state.status = "failed";
-			state.error = action.error.message;
-		});
-	},
-});
+    });
+    const data = await response.json();
+    return data;
+})
+
+ const userProfileSlice = createSlice({
+    name: "userProfile",
+    initialState,
+    reducers: {
+        // standard reducer logic, with auto-generated action types per reducer
+    },
+    extraReducers: (builder) => {
+        builder.addCase(fetchUserProfile.pending, (state) => {
+            state.status = 'loading';
+        });
+        builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
+            state.status = 'success';
+            state.userProfile = action.payload;
+        });
+        builder.addCase(fetchUserProfile.rejected, (state, action) => {
+            state.status = 'failed';
+            state.error = action.error.message;
+        });
+    }
+})
 
 export default userProfileSlice.reducer;
-export const {addUser} = userProfileSlice.actions;
 
 // create selector
-export const selectAvatar = (state: RootState) =>
-	state.userProfile.userProfile?.avatar;
-export const selectBio = (state: RootState) =>
-	state.userProfile.userProfile?.bio;
+
+
+

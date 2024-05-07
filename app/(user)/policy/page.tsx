@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function policy() {
   return (
-    <div className="p-2 bg-gray-100">
-      <div className=" max-w-5xl  mx-auto px-4 sm:px-6 bg-white rounded-lg lg:px-8 flex flex-col justify-between mt-10">
+    <div className="p-2 bg-gray-100 ">
+      <div className=" max-w-5xl  mx-auto px-4 sm:px-6 bg-white rounded-lg lg:px-8 flex flex-col justify-between mt-10 m-8">
         <div className="text-center">
           <p className="mt-4 text-sm leading-7 text-gray-500 font-regular">
             F.A.Q
